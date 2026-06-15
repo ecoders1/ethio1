@@ -56,8 +56,8 @@ export default function AdminQuestionsPage() {
         ? supabase.from("questions").select("*").order("order_num")
         : supabase.from("questions").select("*").eq("exam_id", filterExam).order("order_num"),
     ]);
-    setExams(examsRes.data || []);
-    setQuestions(questionsRes.data || []);
+    setExams((examsRes.data || []) as SimpleExam[]);
+    setQuestions((questionsRes.data || []) as Question[]);
     setLoading(false);
   }
 
