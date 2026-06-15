@@ -29,7 +29,14 @@ export default function AdminLoginPage() {
       const { error, data: authData } = await supabase.auth.signInWithPassword({ email: data.email, password: data.password });
       if (error) throw error;
 
-      const role = authData.user?.user_metadata?.role;
+      // Check role from public.users table (more reliable than JWT metadata)
+      const { data: profile } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", authData.user.id)
+        .single();
+
+      const role = profile?.role || authData.user?.user_metadata?.role;
       if (role !== "admin" && role !== "super_admin") {
         await supabase.auth.signOut();
         throw new Error("Access denied. Admin credentials required.");
