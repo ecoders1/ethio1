@@ -35,7 +35,6 @@ export default function AdminQuestionsPage() {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [filterExam, setFilterExam] = useState("all");
-  const [questionType, setQuestionType] = useState<"mcq" | "true_false">("mcq");
 
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<Form>({
     resolver: zodResolver(schema),
@@ -56,15 +55,14 @@ export default function AdminQuestionsPage() {
         ? supabase.from("questions").select("*").order("order_num")
         : supabase.from("questions").select("*").eq("exam_id", filterExam).order("order_num"),
     ]);
-    setExams((examsRes.data || []) as SimpleExam[]);
-    setQuestions((questionsRes.data || []) as Question[]);
+    setExams((examsRes.data as SimpleExam[]) ?? []);
+    setQuestions((questionsRes.data as Question[]) ?? []);
     setLoading(false);
   }
 
   function openCreate() {
     setEditQ(null);
     reset({ question_type: "mcq", marks: 1 });
-    setQuestionType("mcq");
     setShowModal(true);
   }
 
@@ -83,7 +81,6 @@ export default function AdminQuestionsPage() {
       explanation: q.explanation || "",
       marks: q.marks,
     });
-    setQuestionType(q.question_type);
     setShowModal(true);
   }
 
@@ -277,7 +274,7 @@ export default function AdminQuestionsPage() {
                       <button
                         key={t.id}
                         type="button"
-                        onClick={() => { setValue("question_type", t.id as "mcq" | "true_false"); setQuestionType(t.id as "mcq" | "true_false"); }}
+                        onClick={() => { setValue("question_type", t.id as "mcq" | "true_false"); }}
                         className="flex-1 py-2 rounded-xl text-sm font-medium transition-all"
                         style={watchedType === t.id
                           ? { background: "linear-gradient(135deg, #7c3aed, #3b82f6)", color: "#fff" }
