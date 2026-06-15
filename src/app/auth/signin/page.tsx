@@ -133,8 +133,8 @@ export default function SignInPage() {
             <p className="text-slate-400 text-sm">Sign in to continue your preparation</p>
           </div>
 
-          {/* Google Login */}
-          <button
+          {/* Google Login - disabled until OAuth is configured */}
+          {/* <button
             onClick={handleGoogleLogin}
             disabled={googleLoading}
             className="w-full py-3 rounded-xl font-medium text-white text-sm flex items-center justify-center gap-3 mb-6 transition-all hover:opacity-90 disabled:opacity-50"
@@ -154,11 +154,11 @@ export default function SignInPage() {
               </svg>
             )}
             Continue with Google
-          </button>
+          </button> */}
 
           <div className="flex items-center gap-3 mb-6">
             <div className="flex-1 h-px bg-white/10" />
-            <span className="text-xs text-slate-500">or sign in with email</span>
+            <span className="text-xs text-slate-500">sign in with email</span>
             <div className="flex-1 h-px bg-white/10" />
           </div>
 
