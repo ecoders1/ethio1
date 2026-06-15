@@ -8,7 +8,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
-import type { Question, Exam } from "@/lib/types";
+import type { Question } from "@/lib/types";
+
+type SimpleExam = { id: string; title: string; department_id: string };
 
 const schema = z.object({
   exam_id: z.string().min(1, "Select an exam"),
@@ -26,7 +28,7 @@ type Form = z.infer<typeof schema>;
 
 export default function AdminQuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [exams, setExams] = useState<Exam[]>([]);
+  const [exams, setExams] = useState<SimpleExam[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editQ, setEditQ] = useState<Question | null>(null);
