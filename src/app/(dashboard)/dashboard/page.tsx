@@ -322,7 +322,9 @@ export default function DashboardPage() {
             </Link>
           </div>
         </motion.div>
-      </div>
+
+        {/* PDF Study Materials */}
+        <PdfMaterials />
     </div>
   );
 }
@@ -332,4 +334,94 @@ function getTimeOfDay() {
   if (h < 12) return "Morning";
   if (h < 17) return "Afternoon";
   return "Evening";
+}
+
+// PDF Materials section shown on dashboard
+function PdfMaterials() {
+  const [materials, setMaterials] = useState<{ id: string; title: string; file_url: string; file_type: string; category: string; department_id?: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [viewing, setViewing] = useState<{ title: string; file_url: string } | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("materials")
+        .select("id, title, file_url, file_type, category, department_id")
+        .order("created_at", { ascending: false })
+        .limit(6);
+      setMaterials(data || []);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  if (!loading && materials.length === 0) return null;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          📚 Study Materials
+        </h2>
+        <Link href="/materials" className="text-sm text-purple-400 hover:text-purple-300 flex items-center gap-1">
+          View All <ChevronRight className="w-4 h-4" />
+        </Link>
+      </div>
+
+      {loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-20 rounded-2xl animate-pulse" style={{ background: "rgba(255,255,255,0.05)" }} />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {materials.map((m, i) => (
+            <motion.div key={m.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.05 }} whileHover={{ y: -2 }}
+              className="p-4 rounded-2xl cursor-pointer"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+              onClick={() => {
+                if (m.file_type === "pdf" && m.file_url !== "#") setViewing({ title: m.title, file_url: m.file_url });
+                else if (m.file_url !== "#") window.open(m.file_url, "_blank");
+              }}>
+              <div className="text-2xl mb-2">{m.file_type === "pdf" ? "📕" : m.file_type === "docx" ? "📄" : "📁"}</div>
+              <p className="text-white text-xs font-bold line-clamp-2 mb-1">{m.title}</p>
+              <span className="text-xs px-2 py-0.5 rounded-full"
+                style={{ background: "rgba(124,58,237,0.2)", color: "#a78bfa" }}>
+                {m.file_type.toUpperCase()}
+              </span>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {/* Inline PDF Viewer */}
+      {viewing && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className="fixed inset-0 z-50 flex flex-col"
+          style={{ background: "rgba(0,0,0,0.95)" }}>
+          <div className="flex items-center justify-between px-4 py-3 flex-shrink-0"
+            style={{ background: "rgba(10,8,25,0.95)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+            <p className="text-white font-bold text-sm truncate">{viewing.title}</p>
+            <div className="flex gap-2">
+              <a href={viewing.file_url} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-white"
+                style={{ background: "rgba(124,58,237,0.3)" }}>
+                Open Tab
+              </a>
+              <button onClick={() => setViewing(null)}
+                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10">
+                ✕
+              </button>
+            </div>
+          </div>
+          <div className="flex-1">
+            <iframe src={`${viewing.file_url}#toolbar=1`} className="w-full h-full" title={viewing.title} />
+          </div>
+        </motion.div>
+      )}
+    </motion.div>
+  );
 }
