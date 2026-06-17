@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    // suppress middleware deprecation warning
-  },
+  // No middleware/proxy — auth protection handled client-side
 };
 
 export default nextConfig;
