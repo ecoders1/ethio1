@@ -113,22 +113,6 @@ export default function WelcomePage() {
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </motion.div>
-
-        {/* Already have account */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="mt-6 text-sm dark:text-slate-500 text-slate-400"
-        >
-          Already have an account?{" "}
-          <Link
-            href="/auth/signin"
-            className="text-purple-400 hover:text-purple-300 font-medium transition-colors"
-          >
-            Sign In
-          </Link>
-        </motion.p>
       </div>
 
       {/* Footer */}
