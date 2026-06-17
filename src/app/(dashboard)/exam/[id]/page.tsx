@@ -36,6 +36,8 @@ export default function ExamPage({ params }: { params: Promise<ExamPageParams> }
   const [flagged, setFlagged] = useState<Set<string>>(new Set());
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  const [examFileUrl, setExamFileUrl] = useState<string | null>(null);
+  const [viewingPdf, setViewingPdf] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const tabSwitchCount = useRef(0);
 
@@ -52,6 +54,16 @@ export default function ExamPage({ params }: { params: Promise<ExamPageParams> }
       setTimeLeft(examData.duration_minutes * 60);
       const { data: qs } = await supabase.from("questions").select("*").eq("exam_id", id).order("order_num");
       setQuestions(qs && qs.length > 0 ? qs : DEMO_QUESTIONS);
+      // Check if exam has a PDF file in materials
+      const { data: material } = await supabase
+        .from("materials")
+        .select("file_url, file_type")
+        .eq("department_id", examData.department_id)
+        .in("file_type", ["pdf", "docx", "ppt"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      if (material) setExamFileUrl(material.file_url);
     } else {
       // Demo mode
       const demoExam: Exam = { id, title: "Demo Exam", department_id: "cs", duration_minutes: 30, question_count: 5, passing_score: 50, is_active: true, exam_type: "practice", created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
@@ -236,6 +248,17 @@ export default function ExamPage({ params }: { params: Promise<ExamPageParams> }
               Begin Exam
             </button>
           </div>
+
+          {/* PDF Option */}
+          {examFileUrl && (
+            <button
+              onClick={() => setViewingPdf(true)}
+              className="w-full mt-2 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2"
+              style={{ background: "rgba(239,68,68,0.15)", color: "#f87171", border: "1px solid rgba(239,68,68,0.3)" }}
+            >
+              📕 View Exam PDF Instead
+            </button>
+          )}
         </motion.div>
       </div>
     );
@@ -509,6 +532,69 @@ export default function ExamPage({ params }: { params: Promise<ExamPageParams> }
                 </button>
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* PDF Viewer Modal */}
+      <AnimatePresence>
+        {viewingPdf && examFileUrl && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex flex-col"
+            style={{ background: "rgba(0,0,0,0.97)" }}
+          >
+            <div className="flex items-center justify-between px-4 py-3 flex-shrink-0"
+              style={{ background: "rgba(10,8,25,0.98)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+              <div className="flex items-center gap-3">
+                <span className="text-xl">📕</span>
+                <div>
+                  <p className="text-white font-bold text-sm">{exam?.title}</p>
+                  <p className="text-slate-500 text-xs">PDF Exam View</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <a href={examFileUrl} download
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-white"
+                  style={{ background: "rgba(16,185,129,0.3)" }}>
+                  ⬇ Download
+                </a>
+                <a href={examFileUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-white"
+                  style={{ background: "rgba(124,58,237,0.3)" }}>
+                  ↗ Open Tab
+                </a>
+                <button
+                  onClick={() => setViewingPdf(false)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <iframe
+                src={`${examFileUrl}#toolbar=1&navpanes=1&scrollbar=1`}
+                className="w-full h-full border-0"
+                title={exam?.title}
+              />
+            </div>
+            <div className="px-4 py-3 flex gap-3 flex-shrink-0"
+              style={{ background: "rgba(10,8,25,0.95)", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+              <button
+                onClick={() => setViewingPdf(false)}
+                className="flex-1 py-2.5 rounded-xl text-slate-300 text-sm font-medium border border-white/10">
+                Close PDF
+              </button>
+              <button
+                onClick={() => { setViewingPdf(false); setStarted(true); }}
+                className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold"
+                style={{ background: "linear-gradient(135deg, #7c3aed, #3b82f6)" }}>
+                Take Interactive Exam →
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
