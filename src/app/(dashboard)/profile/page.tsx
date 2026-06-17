@@ -51,7 +51,11 @@ export default function ProfilePage() {
   async function loadUser() {
     const supabase = createClient();
     const { data: { user: authUser } } = await supabase.auth.getUser();
-    if (!authUser) { router.push("/auth/signin"); return; }
+    if (!authUser) {
+      // Guest mode — show empty profile
+      setLoading(false);
+      return;
+    }
 
     const { data: profile } = await supabase.from("users").select("*").eq("id", authUser.id).single();
     if (profile) {

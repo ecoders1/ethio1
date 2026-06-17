@@ -43,7 +43,12 @@ export default function DashboardPage() {
     async function loadData() {
       const supabase = createClient();
       const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) return;
+      
+      // Guest mode — no auth required, just stop loading
+      if (!authUser) {
+        setLoading(false);
+        return;
+      }
 
       // Get user profile
       const { data: profile } = await supabase
@@ -85,14 +90,40 @@ export default function DashboardPage() {
     loadData();
   }, []);
 
-  const userName = user?.full_name || "Student";
-  const department = user?.department_id || "Computer Science";
+  const userName = user?.full_name || "Guest";
+  const department = user?.department_id || "All Departments";
 
   return (
     <div className="min-h-screen">
       <TopBar userName={userName} avatarUrl={user?.avatar_url} />
 
       <div className="px-4 md:px-6 py-6 max-w-5xl mx-auto space-y-8">
+        {/* Guest banner */}
+        {!user && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center justify-between p-4 rounded-2xl"
+            style={{ background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.3)" }}
+          >
+            <div>
+              <p className="text-white font-bold text-sm">Sign in to save your progress</p>
+              <p className="text-slate-400 text-xs">Track results, earn certificates, and more</p>
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              <Link href="/auth/signin"
+                className="px-3 py-1.5 rounded-xl text-xs font-medium text-white border border-white/20 hover:bg-white/10 transition-all">
+                Sign In
+              </Link>
+              <Link href="/auth/signup"
+                className="px-3 py-1.5 rounded-xl text-xs font-bold text-white transition-all hover:opacity-90"
+                style={{ background: "linear-gradient(135deg, #7c3aed, #3b82f6)" }}>
+                Sign Up
+              </Link>
+            </div>
+          </motion.div>
+        )}
+
         {/* Welcome Section */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}

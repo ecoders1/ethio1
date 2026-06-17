@@ -31,20 +31,9 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // Protected user routes
-  const protectedUserRoutes = ["/dashboard", "/exams", "/departments", "/profile", "/results"];
-  const isProtectedUserRoute = protectedUserRoutes.some((r) =>
-    pathname.startsWith(r)
-  );
-
-  // Protected admin routes
-  const isProtectedAdminRoute = pathname.startsWith("/admin") && pathname !== "/admin/login";
-
-  if (isProtectedUserRoute && !user) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/signin";
-    return NextResponse.redirect(url);
-  }
+  // Protected admin routes only — user routes are public
+  const isProtectedAdminRoute =
+    pathname.startsWith("/admin") && pathname !== "/admin/login";
 
   if (isProtectedAdminRoute && !user) {
     const url = request.nextUrl.clone();

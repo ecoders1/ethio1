@@ -24,7 +24,7 @@ export default function ResultsListPage() {
     async function loadResults() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push("/auth/signin"); return; }
+      if (!user) { setLoading(false); return; }
 
       const { data } = await supabase
         .from("results")
